@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
         self.map_point = ''
 
         self.g_search.returnPressed.connect(self.search)
+        self.g_index.stateChanged.connect(self.refresh_map)
         self.g_layer1.clicked.connect(self.set_layer1)
         self.g_layer2.clicked.connect(self.set_layer2)
         self.g_layer3.clicked.connect(self.set_layer3)

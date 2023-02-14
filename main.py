@@ -4,12 +4,13 @@ import requests
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QLabel, QLineEdit, QMainWindow, QPushButton
+from PyQt5.QtWidgets import QApplication, QLabel, QLineEdit, QMainWindow, QPushButton, QCheckBox
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
 
 class MainWindow(QMainWindow):
+    g_index: QCheckBox
     g_map: QLabel
     g_search: QLineEdit
     g_layer1: QPushButton
@@ -106,7 +107,8 @@ class MainWindow(QMainWindow):
 
         self.g_map.setPixmap(pixmap)
         if geo_locate(self.g_search.text(), inform_map=True) != (-1, -1):
-            self.inform_map.setText(f'{geo_locate(self.g_search.text(), inform_map=True)}')
+            self.inform_map.setText(
+                f'{geo_locate(self.g_search.text(), inform_map=True, index_map=self.g_index.checkState())}')
 
     def search(self):
         x, y = geo_locate(self.g_search.text())
@@ -117,7 +119,7 @@ class MainWindow(QMainWindow):
         self.refresh_map()
 
 
-def geo_locate(name, inform_map=False):
+def geo_locate(name, inform_map=False, index_map=False):
     params = {
         'apikey': '40d1649f-0493-4b70-98ba-98533de7710b',
         'geocode': name,
@@ -132,7 +134,13 @@ def geo_locate(name, inform_map=False):
         print('error: could not get geo_objects')
         return -1, -1
     if inform_map:
-        return geo_objects[0]["GeoObject"]['metaDataProperty']['GeocoderMetaData']['text']
+        index = ""
+        if index_map:
+            index = geo_objects[0]["GeoObject"]['metaDataProperty']['GeocoderMetaData']['Address']. \
+                get("postal_code", "")
+            if index:
+                index += ", "
+        return index + geo_objects[0]["GeoObject"]['metaDataProperty']['GeocoderMetaData']['text']
     return list(map(float, geo_objects[0]["GeoObject"]["Point"]["pos"].split()))
 
 
